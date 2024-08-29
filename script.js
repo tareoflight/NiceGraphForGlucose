@@ -1,89 +1,74 @@
 document.getElementById('csvFileInput').addEventListener('change', function (e) {
     const file = e.target.files[0];
-    Papa.parse(file, {
-        header: true,
-        complete: function(results) {
-            const data = results.data;
-            renderChart(data);
-        }
-    });
+    const reader = new FileReader();
+    
+    reader.onload = function(event) {
+        const text = event.target.result;
+        const data = parseCSV(text);
+        renderChart(data);
+    };
+    
+    reader.readAsText(file);
 });
 
-function renderChart(data) {
-    const timestamps = data.map(row => row['Device Timestamp']);
-    const glucoseLevels = data.map(row => parseFloat(row['Historic Glucose mmol/L']));
-    const carbs = data.map(row => parseFloat(row['Carbohydrates (grams)'] || 0));
-    const insulin = data.map(row => parseFloat(row['Long-Acting Insulin (units)'] || 0));
+function parseCSV(text) {
+    const rows = text.split('\n').filter(Boolean);
+    const headers = rows[0].split(',');
 
-    const ctx = document.getElementById('glucoseChart').getContext('2d');
-    
+    // Assuming the first row is headers, and data starts from the second row
+    const data = rows.slice(1).map(row => {
+        const values = row.split(',');
+        const entry = {};
+        headers.forEach((header, i) => {
+            entry[header.trim()] = values[i].trim();
+        });
+        return entry;
+    });
+
+    return data;
+}
+
+function renderChart(data) {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const labels = data.map(entry => entry['Device Timestamp']); // Assuming the timestamp column is named 'Device Timestamp'
+    const glucoseLevels = data.map(entry => parseFloat(entry['Historic Glucose mmol/L'])); // Adjust this to the correct column name
+
     new Chart(ctx, {
         type: 'line',
         data: {
-            labels: timestamps,
-            datasets: [
-                {
-                    label: 'Glucose mmol/L',
-                    data: glucoseLevels,
-                    borderColor: 'blue',
-                    yAxisID: 'y1',
-                    fill: false,
-                },
-                {
-                    label: 'Carbohydrates grams',
-                    data: carbs,
-                    type: 'bar',
-                    backgroundColor: 'orange',
-                    yAxisID: 'y2'
-                },
-                {
-                    label: 'Long-Acting Insulin units',
-                    data: insulin,
-                    type: 'scatter',
-                    backgroundColor: 'green',
-                    yAxisID: 'y2',
-                }
-            ]
+            labels: labels,
+            datasets: [{
+                label: 'Glucose Levels',
+                data: glucoseLevels,
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+                fill: false,
+            }]
         },
         options: {
             scales: {
-                y1: {
-                    type: 'linear',
-                    position: 'left',
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Glucose mmol/L'
-                    }
-                },
-                y2: {
-                    type: 'linear',
-                    position: 'right',
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Carbohydrates & Insulin'
-                    }
-                },
                 x: {
                     type: 'time',
                     time: {
+                        parser: 'YYYY-MM-DD HH:mm', // Adjust according to your timestamp format
                         unit: 'hour',
-                        tooltipFormat: 'MMM DD, YYYY HH:mm',
                         displayFormats: {
-                            hour: 'HH:mm'
+                            hour: 'YYYY-MM-DD HH:mm'
                         }
                     },
                     title: {
                         display: true,
-                        text: 'Time'
+                        text: 'Timestamp'
+                    }
+                },
+                y: {
+                    beginAtZero: false,
+                    title: {
+                        display: true,
+                        text: 'Glucose (mmol/L)'
                     }
                 }
-            },
-            plugins: {
-                legend: {
-                    position: 'top',
-                },
             }
         }
     });
