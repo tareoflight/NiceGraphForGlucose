@@ -3,15 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CSV to Chart.js</title>
-    <script src="https://cdn.jsdelivr.net/npm/moment@2.29.1"></script>
+    <title>Glucose Data Visualizer</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
 </head>
 <body>
-    <h2>Upload CSV to Generate Chart</h2>
-    <input type="file" id="csvFileInput" accept=".csv" />
-    <canvas id="myChart" width="400" height="200"></canvas>
-    <script src="script.js"></script>
+    <h1>Glucose Data Visualizer</h1>
+    <input type="file" id="csvFileInput" accept=".csv">
+    <canvas id="glucoseChart" width="400" height="200"></canvas>
+    <canvas id="carbsChart" width="400" height="200"></canvas>
+    <canvas id="insulinChart" width="400" height="200"></canvas>
+
+    <script src="visualizer.js"></script>
 </body>
 </html>
