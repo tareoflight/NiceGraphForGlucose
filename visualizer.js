@@ -4,80 +4,98 @@ document.getElementById('csvFileInput').addEventListener('change', function(even
         const reader = new FileReader();
         reader.onload = function(e) {
             const text = e.target.result;
-            const data = parseCSV(text);
-            generateCharts(data);
+            const parsedData = parseCSV(text);
+            generateCharts(parsedData);
         };
         reader.readAsText(file);
     }
 });
 
-function parseCSV(text) {
-    const lines = text.split('\n');
-    const headers = lines[1].split(',');
-    const data = [];
+function parseCSV(csvText) {
+    const lines = csvText.trim().split('\n');
+    const headers = lines[0].split('\t'); // Assuming the data is tab-separated
 
-    for (let i = 2; i < lines.length; i++) {
-        const row = lines[i].split(',');
-        const record = {
-            timestamp: row[2],
-            glucose: parseFloat(row[4]) || parseFloat(row[5]) || null,
-            carbs: parseFloat(row[10]) || null,
-            insulin: parseFloat(row[8]) || parseFloat(row[12]) || null,
-        };
-        data.push(record);
+    const data = lines.slice(1).map(line => {
+        const values = line.split('\t');
+        let entry = {};
+        headers.forEach((header, index) => {
+            entry[header.trim()] = values[index] ? values[index].trim() : null;
+        });
+        return entry;
+    });
+
+    const groupedByRecordType = {};
+
+    data.forEach(entry => {
+        const recordType = entry['Record Type'];
+        if (!groupedByRecordType[recordType]) {
+            groupedByRecordType[recordType] = [];
+        }
+        groupedByRecordType[recordType].push(entry);
+    });
+
+    for (const recordType in groupedByRecordType) {
+        groupedByRecordType[recordType].sort((a, b) => {
+            return new Date(a['Device Timestamp']) - new Date(b['Device Timestamp']);
+        });
     }
 
-    return data;
+    return groupedByRecordType;
 }
 
-function generateCharts(data) {
-    const timestamps = data.map(d => d.timestamp);
-    const glucoseLevels = data.map(d => d.glucose);
-    const carbs = data.map(d => d.carbs);
-    const insulin = data.map(d => d.insulin);
-
-    const glucoseCtx = document.getElementById('glucoseChart').getContext('2d');
-    new Chart(glucoseCtx, {
-        type: 'line',
-        data: {
-            labels: timestamps,
-            datasets: [{
-                label: 'Glucose Levels (mmol/L)',
-                data: glucoseLevels,
-                borderColor: 'rgba(255, 99, 132, 1)',
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                fill: false
-            }]
-        }
+function prepareChartData(parsedData) {
+    const datasets = Object.keys(parsedData).map(recordType => {
+        return {
+            label: `Record Type ${recordType}`,
+            data: parsedData[recordType].map(entry => ({
+                x: new Date(entry['Device Timestamp']),
+                y: parseFloat(entry['Historic Glucose mmol/L'] || entry['Scan Glucose mmol/L'] || 0)
+            })),
+            borderColor: getRandomColor(),
+            fill: false
+        };
     });
 
-    const carbsCtx = document.getElementById('carbsChart').getContext('2d');
-    new Chart(carbsCtx, {
-        type: 'bar',
-        data: {
-            labels: timestamps,
-            datasets: [{
-                label: 'Carbohydrates (grams)',
-                data: carbs,
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                borderColor: 'rgba(54, 162, 235, 1)',
-                fill: false
-            }]
-        }
-    });
+    return datasets;
+}
 
-    const insulinCtx = document.getElementById('insulinChart').getContext('2d');
-    new Chart(insulinCtx, {
+function getRandomColor() {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+}
+
+function generateCharts(parsedData) {
+    const chartData = prepareChartData(parsedData);
+
+    const ctx = document.getElementById('myChart').getContext('2d');
+    new Chart(ctx, {
         type: 'line',
         data: {
-            labels: timestamps,
-            datasets: [{
-                label: 'Insulin (units)',
-                data: insulin,
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                fill: false
-            }]
+            datasets: chartData
+        },
+        options: {
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'minute'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Time'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Glucose mmol/L'
+                    }
+                }
+            }
         }
     });
 }
