@@ -13,10 +13,10 @@ document.getElementById('csvFileInput').addEventListener('change', function(even
 
 function parseCSV(csvText) {
     const lines = csvText.trim().split('\n');
-    const headers = lines[0].split('\t'); // Assuming the data is tab-separated
+    const headers = lines[0].split(','); // Assuming the data is tab-separated
 
     const data = lines.slice(1).map(line => {
-        const values = line.split('\t');
+        const values = line.split(',');
         let entry = {};
         headers.forEach((header, index) => {
             entry[header.trim()] = values[index] ? values[index].trim() : null;
