@@ -1,0 +1,90 @@
+
+#myChart {
+    width: 100%; /* Adjust to your needs */
+    height: 400px; /* Adjust height as needed */
+    overflow-x: auto; /* Enable horizontal scrolling if needed */
+}
+/* Style for each day's container */
+.day-table-container {
+    margin-bottom: 20px;
+}
+
+/* Style for each table */
+.day-table {
+    border-collapse: collapse;
+    width: 1080px;
+}
+
+/* Style for each table header */
+.day-table th {
+    text-align: center;
+}
+
+/* Style for each table cell */
+.day-table td {
+    text-align: center;
+    max-width: 20px;
+    min-width: 20px;
+    border-right: 1px dashed #ddd; /* Default dashed border */
+}
+
+/* Style for the date column */
+.day-table td:first-child {
+    font-weight: bold;
+    background-color: #fff;
+    text-align: right;
+}
+
+/* Add solid border at columns 12 */
+.day-table td:nth-child(13) {
+    border-right: 1px solid #000; /* Solid border */
+}
+/* Add solid border at columns 6 and 18 */
+.day-table td:first-child,
+.day-table td:nth-child(7),
+.day-table td:nth-child(19),
+.day-table td:last-child {
+    border-right: 2px solid #000; /* Solid border */
+}
+
+/* Style for each row based on class */
+.blank-row {
+    background-color: #fff;
+}
+
+.max-glucose-row {
+    background-color: #fc9118;  
+}
+
+.min-glucose-row {
+    background-color: #fc9118;
+}
+.non-numeric-food-row {
+    background-color: #fff;
+    border-bottom: solid black;
+}
+
+
+.insulin-row {
+    background-color: #ebffff;
+}
+
+.notes-row {
+    background-color: #fff;
+}
+
+.notes-row td {
+    font-size: 10px;
+    position: relative;
+}
+
+.canvasDiv {
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+    margin-left: auto;
+    width: 1020px;
+}
+.canvasDiv * {
+    margin-right: -7px;
+}

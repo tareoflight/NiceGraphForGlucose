@@ -6,13 +6,18 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/moment"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
     <title>CSV Chart</title>
 </head>
 <body>
+    <h1 id = "WhatIS"></h1>
+    <h2 id = "Owner"></h2>
+    <p id = "WhenIs"></p>
+    </hr>
     <input type="file" id="csvFileInput" />
-    <canvas id="myChart" width="400" height="200"></canvas>
-
-    <!-- Your script should be placed here -->
+    <div id="chart-container"></div>
     <script src="visualizer.js"></script>
 </body>
 </html>
