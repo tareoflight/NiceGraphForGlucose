@@ -183,7 +183,7 @@ function groupByHour(groupedData) {
 
                         var dateString = dateToStr(item["Device Timestamp"]);
 
-                        var glblock = { "x": dateString, "y": combinedGlucose[0] };
+                        var glblock = { "x": dateString, "y": combinedGlucose[0],"flag": false};
                         hourlyData[hourKey].glData.push(glblock);
 
                         if (combinedGlucose.length > 0) {
@@ -244,12 +244,13 @@ function generateDayTables(data) {
         const niceDate = weekday[d.getDay()] + ", " + month[d.getMonth()] + " " + d.getDate();
         dateHeader.innerText = niceDate;
         dateHeader.style.width = '100px'; // Adjust width as needed
+        dateHeader.colSpan = 25;
         headerRow.appendChild(dateHeader);
 
-        for (let hour = 0; hour < 24; hour++) {
-            const th = document.createElement('th');
-            headerRow.appendChild(th);
-        }
+        // for (let hour = 0; hour < 24; hour++) {
+        //     const th = document.createElement('th');
+        //     headerRow.appendChild(th);
+        // }
         table.appendChild(headerRow);
 
         // Create table rows
@@ -350,9 +351,18 @@ function addChartToDay(day, hourlyData) {
     }
     chartDATA = sortByDate(chartDATA);
     const startDate = day + " 00:00:00";
-    const endDate = day + " 23:59:00"
+    const mornning= day + " 06:00:00";
+    const noon= day + " 12:00:00";
+    const afternoon= day + " 18:00:00";
+    const endDate = day + " 23:59:00";
 
-
+    const xTicks = [
+        (new Date(startDate)).getTime(),
+        (new Date(mornning)).getTime(),
+        (new Date(noon)).getTime(),
+        (new Date(afternoon)).getTime(),
+        (new Date(endDate)).getTime()
+    ]
 
     new Chart(ctx, {
         type: 'line',
@@ -361,6 +371,9 @@ function addChartToDay(day, hourlyData) {
             datasets: [{
                 label: 'Glucose Levels',
                 data: chartDATA,
+                pointRadius: function(context){
+                    return 0;
+                },
                 borderColor: 'rgba(75, 192, 192, 1)',
                 backgroundColor: 'rgba(75, 192, 192, 0.2)',
                 fill: true
@@ -368,12 +381,13 @@ function addChartToDay(day, hourlyData) {
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             plugins: {
                 legend: {
                     display: false
                 },
                 layout: {
-                    padding: 0
+                    padding: 0,
                 },
                 annotation: {
                     annotations: {
@@ -383,8 +397,8 @@ function addChartToDay(day, hourlyData) {
                             xMax: endDate, // Set this to the maximum x value of your chart
                             yMin: 3.9,
                             yMax: 10,
-                            backgroundColor: 'rgba(128, 128, 128, 0.2)', // Light gray background
-                            borderColor: 'rgba(128, 128, 128, 0.5)', // Gray border color
+                            backgroundColor: 'rgba(128, 200, 128, 0.2)', // Light gray background
+                            borderColor: 'rgba(128, 200, 128, 0.5)', // Gray border color
                             borderWidth: 1
                         }
                     }
@@ -400,15 +414,63 @@ function addChartToDay(day, hourlyData) {
             scales: {
                 x: {
                     type: 'time',
+                    position: 'top',
                     time: {
                         displayFormats: {
-                            hour: 'HH:mm'
+                            hour: ' HH:mm'
                         }
                     },
                     title: {
                         display: false,
                         text: 'Hour'
-                    }
+                    },
+                    ticks:{
+                        align: 'start',
+                    },
+                    grid: {
+                        color: function(context) {
+                            switch (context.tick.value) {
+                                case xTicks[0]:
+                                case xTicks[1]:
+                                case xTicks[2]:
+                                case xTicks[3]:
+                                case xTicks[4]:    
+                                    return '#000000';
+                                default:
+                                    return '#777777';
+                            }
+                        },
+                        lineWidth: function(context) {
+                            switch (context.tick.value) {
+                                case xTicks[0]:
+                                case xTicks[2]:
+                                case xTicks[4]:    
+                                    return '1';
+                                case xTicks[1]:
+                                case xTicks[3]:
+                                    return '2';
+                                default:
+                                    return '1';
+                            }
+                        },
+                        
+                        
+                    },
+                    border: {
+                        dash: function(context) {
+                            switch (context.tick.value) {
+                                case xTicks[0]:
+                                case xTicks[2]:
+                                case xTicks[4]:    
+                                    return [1,0];
+                                case xTicks[1]:
+                                case xTicks[3]:
+                                    return [1,0];
+                                default:
+                                    return [8,4];
+                            }
+                        },
+                    },
                 },
                 y: {
                     title: {
@@ -416,7 +478,7 @@ function addChartToDay(day, hourlyData) {
                         text: 'Glucose Level'
                     },
                     min: 0, // Set the minimum bound for y-axis
-                    max: 22, // Set the maximum bound for y-axis
+                    max: 23, // Set the maximum bound for y-axis
                     afterBuildTicks: axis => axis.ticks = [21, 10, 3.9, 0].map(v => ({ value: v }))
                 }
             }

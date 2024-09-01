@@ -23,16 +23,19 @@
 /* Style for each table cell */
 .day-table td {
     text-align: center;
-    max-width: 20px;
-    min-width: 20px;
+    min-width: 40px;
+    max-width: 40px;
     border-right: 1px dashed #ddd; /* Default dashed border */
 }
 
 /* Style for the date column */
 .day-table td:first-child {
+    border-right: 2px solid #000;
     font-weight: bold;
     background-color: #fff;
     text-align: right;
+    min-width: 150px;
+    max-width: 150px;
 }
 
 /* Add solid border at columns 12 */
@@ -40,7 +43,6 @@
     border-right: 1px solid #000; /* Solid border */
 }
 /* Add solid border at columns 6 and 18 */
-.day-table td:first-child,
 .day-table td:nth-child(7),
 .day-table td:nth-child(19),
 .day-table td:last-child {
@@ -61,7 +63,7 @@
 }
 .non-numeric-food-row {
     background-color: #fff;
-    border-bottom: solid black;
+    border-bottom: solid black 1px;
 }
 
 
@@ -83,8 +85,12 @@
     padding: 0px;
     border: 0px;
     margin-left: auto;
-    width: 1020px;
+    width: 1085px;
 }
 .canvasDiv * {
-    margin-right: -7px;
+    margin-right: -3px; 
+    padding-bottom: 0px;
+}
+canvas {
+    display: block;
 }
