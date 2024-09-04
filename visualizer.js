@@ -15,14 +15,7 @@ document.getElementById('csvFileInput').addEventListener('change', function (eve
             data = groupByDay(data);
             //for each day'
             data = groupByHour(data);
-            //  make and lable a new chart under the last one
-            //  group by hour
-            //    for each hour
-            //       for each row
-            //          if record type == 0 or 1 then get data for ploting to line graph
-            //          if record type == 4 flag hour for meal
-            //          if record type == 5 get data and flag hour with data in insulin section
-            //          if record type == 6 then put any notes in a notes section under the hour
+            //make a chart for each day
             generateDayTables(data);
 
             console.log(data);
@@ -43,13 +36,18 @@ function makeDate(csvDateText) {
 
     return dateObj;
 }
+function capitalizeWords(string) {
+    return string.split(' ').map(word =>
+        word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ')
+}
 function setUserInfo(csvFileText) {
     const lines = csvFileText.trim().split('\r\n');
     const userData = lines[0].split(',');
-    var whatis = document.getElementById("WhatIS");
+    var whatis = document.getElementById("WhatIs");
     whatis.innerHTML = userData[0];
     var owner = document.getElementById("Owner");
-    owner.innerHTML = userData[4];
+    owner.innerHTML = capitalizeWords(userData[4]);
     var whenIs = document.getElementById("WhenIs");
     whenIs.innerHTML = userData[2];
 }
@@ -177,13 +175,12 @@ function groupByHour(groupedData) {
                 filteredData.forEach(item => {
                     var scanGlucose = parseFloat(item["Scan Glucose mmol/L"]);
                     var historicGlucose = parseFloat(item["Historic Glucose mmol/L"]);
+                    var dateString = dateToStr(item["Device Timestamp"]);
 
                     if (!isNaN(scanGlucose) || !isNaN(historicGlucose)) {
                         var combinedGlucose = [scanGlucose, historicGlucose].filter(v => !isNaN(v));
 
-                        var dateString = dateToStr(item["Device Timestamp"]);
-
-                        var glblock = { "x": dateString, "y": combinedGlucose[0],"flag": false};
+                        var glblock = { "x": dateString, "y": combinedGlucose[0] };
                         hourlyData[hourKey].glData.push(glblock);
 
                         if (combinedGlucose.length > 0) {
@@ -281,13 +278,33 @@ function generateDayTables(data) {
                     const td = document.createElement('td');
                     // Add cell content based on the row type
                     if (row.class === 'max-glucose-row') {
-                        td.innerText = data[day][String(hour).padStart(2, '0')]?.maxGlucose ?? '';
+                        var text = data[day][String(hour).padStart(2, '0')]?.maxGlucose ?? ''
+                        if (parseFloat(text) > 22.1) {
+                            td.className += "maxed-glucose-cell";
+                        } else if (parseFloat(text) >= 10) {
+                            td.className += "high-glucose-cell";
+                        } else if (parseFloat(text) <= 3.9) {
+                            td.className += "low-glucose-cell";
+                        }
+                        td.innerText = text;
                     } else if (row.class === 'min-glucose-row') {
-                        td.innerText = data[day][String(hour).padStart(2, '0')]?.minGlucose ?? '';
+                        var text = data[day][String(hour).padStart(2, '0')]?.minGlucose ?? ''
+                        if (parseFloat(text) > 22.1) {
+                            td.className += "maxed-glucose-cell";
+                        } else if (parseFloat(text) >= 10) {
+                            td.className += "high-glucose-cell";
+                        } else if (parseFloat(text) <= 3.9) {
+                            td.className += "low-glucose-cell";
+                        }
+                        td.innerText = text;
                     } else if (row.class === 'non-numeric-food-row') {
                         td.innerHTML = data[day][String(hour).padStart(2, '0')]?.nonNumericFood ? '🍎' : '';
                     } else if (row.class === 'insulin-row') {
-                        td.innerText = data[day][String(hour).padStart(2, '0')]?.insulin ?? '';
+                        var text = data[day][String(hour).padStart(2, '0')]?.insulin ?? ''
+                        if (parseFloat(text) > 0) {
+                            td.className += "insulin-given-cell";
+                        }
+                        td.innerText = text;
                     } else if (row.class === 'notes-row') {
                         var tepnote = data[day][String(hour).padStart(2, '0')]?.notes;
                         td.innerText = tepnote ? "►" + tepnote : '';
@@ -338,22 +355,40 @@ function addChartToDay(day, hourlyData) {
     const ctx = canvas.getContext('2d');
 
     var chartDATA = [];
+    var foodDATA = [];
     for (var i = 0; i < 24; i++) {
         var cur = i = i <= 9 ? '0' + i : i
         for (var j = 0; j < hourlyData[cur].glData.length; j++) {
             chartDATA.push(hourlyData[cur].glData[j]);
         }
     }
+    for (var i = 0; i < 24; i++) {
+        var cur = i = i <= 9 ? '0' + i : i
+        for (var j = 0; j < hourlyData[cur].hoursdata.length; j++) {
+            if (parseInt(hourlyData[cur].hoursdata[j]['Record Type']) == 5) {
+                var x = dateToStr(hourlyData[cur].hoursdata[j]['Device Timestamp']);
+                var y = (hourlyData[cur].maxGlucose + hourlyData[cur].minGlucose) / 2;
+                if (y <=1){
+                    y = 10;
+                }
+                foodDATA.push({ "x": x, "y": y });
+            }
+
+        }
+    }
+
     //sort this by date
 
     function sortByDate(arr) {
         return arr.sort((a, b) => new Date(a.x) - new Date(b.x));
     }
     chartDATA = sortByDate(chartDATA);
+    foodDATA = sortByDate(foodDATA);
+    const FAAPPLE = document.getElementById("FAAPPLE");
     const startDate = day + " 00:00:00";
-    const mornning= day + " 06:00:00";
-    const noon= day + " 12:00:00";
-    const afternoon= day + " 18:00:00";
+    const mornning = day + " 06:00:00";
+    const noon = day + " 12:00:00";
+    const afternoon = day + " 18:00:00";
     const endDate = day + " 23:59:00";
 
     const xTicks = [
@@ -363,21 +398,34 @@ function addChartToDay(day, hourlyData) {
         (new Date(afternoon)).getTime(),
         (new Date(endDate)).getTime()
     ]
-
     new Chart(ctx, {
-        type: 'line',
         data: {
             //labels: chartDATA, // Hours as labels
-            datasets: [{
-                label: 'Glucose Levels',
-                data: chartDATA,
-                pointRadius: function(context){
-                    return 0;
+            datasets: [
+                {
+                    lable: 'Food',
+                    data: foodDATA,
+                    type: 'scatter',
+                    pointStyle: FAAPPLE,
+                    pointRadius: 5,
+                    borderColor: 'rgba(255, 192, 192, 1)',
+                    backgroundColor: 'rgba(250, 100, 100, 1)',
+                    color: 'rgba(250, 100, 100, 1)',
+                    fill: false
                 },
-                borderColor: 'rgba(75, 192, 192, 1)',
-                backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                fill: true
-            }]
+                {
+                    label: 'Glucose Levels',
+                    type: 'line',
+                    data: chartDATA,
+                    pointRadius: function (context) {
+                        //console.log(context);
+                        return context.index % 3 == 0 ? 3 : 1;
+                    },
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    fill: true
+                },
+            ]
         },
         options: {
             responsive: true,
@@ -404,7 +452,11 @@ function addChartToDay(day, hourlyData) {
                     }
                 },
                 tooltip: {
+                    filter: function (tooltipItem) {
+                        return tooltipItem.datasetIndex === 1;
+                    },
                     callbacks: {
+
                         label: function (context) {
                             return `Glucose Level: ${context.raw.y}`;
                         }
@@ -424,27 +476,27 @@ function addChartToDay(day, hourlyData) {
                         display: false,
                         text: 'Hour'
                     },
-                    ticks:{
+                    ticks: {
                         align: 'start',
                     },
                     grid: {
-                        color: function(context) {
+                        color: function (context) {
                             switch (context.tick.value) {
                                 case xTicks[0]:
                                 case xTicks[1]:
                                 case xTicks[2]:
                                 case xTicks[3]:
-                                case xTicks[4]:    
+                                case xTicks[4]:
                                     return '#000000';
                                 default:
                                     return '#777777';
                             }
                         },
-                        lineWidth: function(context) {
+                        lineWidth: function (context) {
                             switch (context.tick.value) {
                                 case xTicks[0]:
                                 case xTicks[2]:
-                                case xTicks[4]:    
+                                case xTicks[4]:
                                     return '1';
                                 case xTicks[1]:
                                 case xTicks[3]:
@@ -453,21 +505,21 @@ function addChartToDay(day, hourlyData) {
                                     return '1';
                             }
                         },
-                        
-                        
+
+
                     },
                     border: {
-                        dash: function(context) {
+                        dash: function (context) {
                             switch (context.tick.value) {
                                 case xTicks[0]:
                                 case xTicks[2]:
-                                case xTicks[4]:    
-                                    return [1,0];
+                                case xTicks[4]:
+                                    return [1, 0];
                                 case xTicks[1]:
                                 case xTicks[3]:
-                                    return [1,0];
+                                    return [1, 0];
                                 default:
-                                    return [8,4];
+                                    return [8, 4];
                             }
                         },
                     },
@@ -483,7 +535,7 @@ function addChartToDay(day, hourlyData) {
                 }
             }
         }
-        
+
     });
 }
 

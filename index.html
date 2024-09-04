@@ -1,23 +1,63 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/moment"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="scripts/chart.js"></script>
+    <script src="scripts/moment.js"></script>
+    <script src="scripts/chartjs-adapter-moment.js"></script>
+    <script src="scripts/chartjs-plugin-annotation.js"></script>
+    <script src="scripts/chartjs-adapter-date-fns.bundle.min.js"></script>
     <link rel="stylesheet" href="styles.css">
     <title>CSV Chart</title>
 </head>
+
 <body>
-    <h1 id = "WhatIS"></h1>
-    <h2 id = "Owner"></h2>
-    <p id = "WhenIs"></p>
-    </hr>
-    <input type="file" id="csvFileInput" />
+    <div hidden>
+        <img id="FAAPPLE" src="Imgs/FA apple.png" width="15px" height="17px" />
+    </div>
+
+    <div id="buttons" style="display: inline-flex; width: 585px;" class="no-print">
+        <div class="custom-file-target">
+            <input type="file" id="csvFileInput" style="opacity: 0; width: 1px;">
+            <button>Choose CSV File To Make Graphs</button>
+        </div>
+        <form method="get" action="extras/template.csv"></form>
+        <div class="custom-file-target">
+            <button>Download a Minimalist Template</button>
+        </div>
+        </form>
+        <div class="custom-file-target">
+
+            <button onclick="window.print();">Print Data</button>
+        </div>
+        <script>
+            const fileInput = document.getElementById('csvFileInput');
+            const customButton = document.querySelector('.custom-file-target button');
+            customButton.addEventListener('click', () => {
+                fileInput.click();
+            });
+        </script>
+    </div>
+    <hr />
+    <div id="UserData">
+        <h1 id="WhatIs" style="margin-bottom: 0px;"></h1>
+        <h2 id="Owner" style="
+            margin-top: 0px;
+            margin-left: 15px;"></h2>
+        <p id="WhenIs" style="
+            position: absolute;
+            top: 10px;
+            right: 0;
+            padding: 0;
+            margin: 0;"></p>
+    </div>
+    <hr />
+
+
     <div id="chart-container"></div>
     <script src="visualizer.js"></script>
 </body>
+
 </html>
