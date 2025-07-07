@@ -366,16 +366,18 @@ function addChartToDay(day, hourlyData) {
     }
     for (var i = 0; i < 24; i++) {
         var cur = i = i <= 9 ? '0' + i : i
-        for (var j = 0; j < hourlyData[cur].hoursdata.length; j++) {
-            if (parseInt(hourlyData[cur].hoursdata[j]['Record Type']) == 5) {
-                var x = dateToStr(hourlyData[cur].hoursdata[j]['Device Timestamp']);
-                var y = (hourlyData[cur].maxGlucose + hourlyData[cur].minGlucose) / 2;
-                if (y <=1){
-                    y = 10;
+        if (hourlyData[cur]?.hoursdata){
+            for (var j = 0; j < hourlyData[cur].hoursdata.length; j++) {
+                if (parseInt(hourlyData[cur].hoursdata[j]['Record Type']) == 5) {
+                    var x = dateToStr(hourlyData[cur].hoursdata[j]['Device Timestamp']);
+                    var y = (hourlyData[cur].maxGlucose + hourlyData[cur].minGlucose) / 2;
+                    if (y <=1){
+                        y = 10;
+                    }
+                    foodDATA.push({ "x": x, "y": y });
                 }
-                foodDATA.push({ "x": x, "y": y });
+    
             }
-
         }
     }
 
