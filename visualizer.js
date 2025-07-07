@@ -358,8 +358,10 @@ function addChartToDay(day, hourlyData) {
     var foodDATA = [];
     for (var i = 0; i < 24; i++) {
         var cur = i = i <= 9 ? '0' + i : i
-        for (var j = 0; j < hourlyData[cur].glData.length; j++) {
-            chartDATA.push(hourlyData[cur].glData[j]);
+        if (hourlyData[cur]?.glData){
+            for (var j = 0; j < hourlyData[cur].glData.length; j++) {
+                chartDATA.push(hourlyData[cur].glData[j]);
+            }
         }
     }
     for (var i = 0; i < 24; i++) {
